@@ -73,7 +73,7 @@ def train(dataloader, epoch):
     g_losses = []
     d_losses = []
     for i in range(epoch):
-        if i % 1 == 0:
+        if i % 100 == 0:
             fake_images = g(noise).detach().cpu().view(16, 1, height, width)
             show_image(fake_images, "./figure/%d.png" % i)
 
@@ -117,7 +117,7 @@ def train(dataloader, epoch):
         g_losses.append(g_running_loss)
         d_losses.append(d_running_loss)
         print("Generator: %f, Discriminator: %f" % (g_running_loss, d_running_loss))
-    
+
     fake_images = g(noise).detach().cpu().view(16, 1, height, width)
     show_image(fake_images, "./figure/%d.png" % i)
     np.save("./result/generator.npy", np.array(g_losses))
