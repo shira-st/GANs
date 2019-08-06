@@ -26,11 +26,11 @@ class Discriminator(nn.Module):
     def __init__(self, in_size):
         super(Discriminator, self).__init__()
         self.drop1 = nn.Dropout(0.8)
-        self.fc1 = nn.Linear(in_size, 512)
+        self.fc1 = nn.Linear(in_size, 256)
         self.drop2 = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(512, 512)
+        self.fc2 = nn.Linear(256, 256)
         self.drop3 = nn.Dropout(0.5)
-        self.fc3 = nn.Linear(512, 1)
+        self.fc3 = nn.Linear(256, 1)
 
     def forward(self, x):
         x = F.relu(self.fc1(self.drop1(x)), inplace=True)
@@ -105,6 +105,6 @@ def train(dataloader, epoch, generator=None, discriminator=None):
 
         g_losses.append(g_running_loss)
         d_losses.append(d_running_loss)
-        print("Generator: %f, Discriminator: %f" % (g_running_loss, d_running_loss))
+        print("[%d] Generator: %f, Discriminator: %f" % (i, g_running_loss, d_running_loss))
 
     return g, d, np.array(g_losses), np.array(d_losses)
