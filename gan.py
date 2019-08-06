@@ -7,7 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.utils as utils
-import matplotlib.pyplot as plt
 
 
 class Generator(nn.Module):
@@ -66,8 +65,6 @@ def train(dataloader, epoch, generator=None, discriminator=None):
     g_optimizer = optim.Adam(g.parameters(), lr=0.0001)
     d_optimizer = optim.Adam(d.parameters(), lr=0.0001)
 
-    noise = torch.rand((16,  in_size), device=device)
-
     # training
     g_losses = []
     d_losses = []
@@ -113,4 +110,4 @@ def train(dataloader, epoch, generator=None, discriminator=None):
         d_losses.append(d_running_loss)
         print("Generator: %f, Discriminator: %f" % (g_running_loss, d_running_loss))
 
-    return g, d, g_losses, d_losses
+    return g, d, np.array(g_losses), np.array(d_losses)
