@@ -103,8 +103,6 @@ def train(dataloader, epoch, generator=None, discriminator=None):
             d_loss.backward()
             d_optimizer.step()
 
-        g_running_loss = g_running_loss / len(dataloader.dataset)
-        d_running_loss = d_running_loss / len(dataloader.dataset)
         g_losses.append(g_running_loss)
         d_losses.append(d_running_loss)
         print("Generator: %f, Discriminator: %f" % (g_running_loss, d_running_loss))
