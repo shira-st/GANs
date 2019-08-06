@@ -99,8 +99,8 @@ class GAN:
         d_loss.backward()
         self.d_optimizer.step()
 
-      g_running_loss /= len(dataloader)
-      d_running_loss /= len(dataloader)
+      g_running_loss /= len(self.dataloader)
+      d_running_loss /= len(self.dataloader)
       self.g_losses.append(g_running_loss)
       self.d_losses.append(d_running_loss)
       print("[%d] Generator: %f, Discriminator: %f" % (i, g_running_loss, d_running_loss))
