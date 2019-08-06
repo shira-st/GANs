@@ -26,11 +26,11 @@ class Discriminator(nn.Module):
     def __init__(self, in_size):
         super(Discriminator, self).__init__()
         self.drop1 = nn.Dropout(0.8)
-        self.fc1 = nn.Linear(in_size, 1024)
+        self.fc1 = nn.Linear(in_size, 512)
         self.drop2 = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(1024, 1024)
+        self.fc2 = nn.Linear(512, 512)
         self.drop3 = nn.Dropout(0.5)
-        self.fc3 = nn.Linear(1024, 1)
+        self.fc3 = nn.Linear(512, 1)
 
     def forward(self, x):
         x = F.relu(self.fc1(self.drop1(x)), inplace=True)
