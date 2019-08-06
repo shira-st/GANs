@@ -41,14 +41,7 @@ class Discriminator(nn.Module):
         return x
 
 
-def show_image(images, filename):
-    plt.figure(figsize=(10, 10))
-    plt.imshow(utils.make_grid(images).numpy().transpose((1,2,0)))
-    plt.savefig(filename)
-    return
-
-
-def train(dataloader, epoch):
+def train(dataloader, epoch, generator=None, discriminator=None):
     data, _ = next(iter(dataloader))
     height = data.size()[2]
     width = data.size()[3]
@@ -59,8 +52,14 @@ def train(dataloader, epoch):
 
     # models
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    g = Generator(in_size, out_size).to(device)
-    d = Discriminator(out_size).to(device)
+    if generator is None:
+        g = Generator(in_size, out_size).to(device)
+    else:
+        g = generator.to(device)
+    if discriminator is None:
+        d = Discriminator(out_size).to(device)
+    else:
+        d = discriminator.to(device)
 
     # optimizers
     criterion = nn.BCELoss()
@@ -73,10 +72,6 @@ def train(dataloader, epoch):
     g_losses = []
     d_losses = []
     for i in range(epoch):
-        if i % 100 == 0:
-            fake_images = g(noise).detach().cpu().view(16, 1, height, width)
-            show_image(fake_images, "./figure/%d.png" % i)
-
         g_running_loss = 0
         d_running_loss = 0
         for _, (images, _) in enumerate(dataloader):
@@ -118,8 +113,4 @@ def train(dataloader, epoch):
         d_losses.append(d_running_loss)
         print("Generator: %f, Discriminator: %f" % (g_running_loss, d_running_loss))
 
-    fake_images = g(noise).detach().cpu().view(16, 1, height, width)
-    show_image(fake_images, "./figure/%d.png" % i)
-    np.save("./result/generator.npy", np.array(g_losses))
-    np.save("./result/discriminator.npy", np.array(d_losses))
-    return
+    return g, d, g_losses, d_losses
