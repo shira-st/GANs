@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision.utils as utils
 
 
 class Generator(nn.Module):
