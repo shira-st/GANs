@@ -15,7 +15,7 @@ class Generator(nn.Module):
     self.fc2 = nn.Linear(1200, out_size)
 
   def forward(self, noise, label):
-    # It is unclear whether Dropout is used for inputs
+    # It is unclear whether Dropout is used for inputs.
     noise = F.relu(self.fc_noise(noise), inplace=True)
     label = F.relu(self.fc_label(label), inplace=True)
     x = torch.cat((noise, label), dim=1)
@@ -35,16 +35,16 @@ class Discriminator(nn.Module):
     self.fc2 = nn.Linear(240, 1)
 
   def forward(self, data, label):
-    # It is unclear whether Dropout is used for inputs
+    # It is unclear whether Dropout is used for inputs.
 
-    # Authors use a maxout layer with 240 units and 5 pieces
+    # Authors use a maxout layer with 240 units and 5 pieces.
     data = F.relu(self.fc_data(data), inplace=True)
 
-    # Authors use a maxout layer with 50 units and 5 pieces
+    # Authors use a maxout layer with 50 units and 5 pieces.
     label = F.relu(self.fc_label(label), inplace=True)
     x = torch.cat((data, label), dim=1)
 
-    # Authors use a maxout layer with 240 units and 4 pieces
+    # Authors use a maxout layer with 240 units and 4 pieces.
     x = F.relu(self.fc1(self.drop1(x)), inplace=True)
     x = torch.sigmoid(self.fc2(self.drop2(x)))
     return x
