@@ -5,9 +5,10 @@ import torch.optim as optim
 
 
 class Generator(nn.Module):
-  def __init__(self, in_size, out_size):
+  def __init__(self, noise_size, out_size):
+    # The number of hidden nodes are unclear.
     super(Generator, self).__init__()
-    self.fc1 = nn.Linear(in_size, 1024)
+    self.fc1 = nn.Linear(noise_size, 1024)
     self.fc2 = nn.Linear(1024, 1024)
     self.fc3 = nn.Linear(1024, 1024)
     self.fc4 = nn.Linear(1024, 1024)
@@ -22,9 +23,9 @@ class Generator(nn.Module):
     return x
 
 
-class MMD(nn.Module):
+class MMDs(nn.Module):
   def __init__(self, sigmas):
-    super(MMD, self).__init__()
+    super(MMDs, self).__init__()
     self.sigmas = sigmas
 
   def dist(self, X, Y=None):
@@ -48,45 +49,65 @@ class MMD(nn.Module):
     return mmd
 
   def forward(self, X, Y):
-    mmds = sum([self.mmd(X, Y, sigma) for sigma in self.sigmas])
+    mmds = 0
+    for sigma in self.sigmas:
+      mmds += self.mmd(X, Y, sigma)
     return mmds
 
 
 class GMMN:
-  def __init__(self, dataloader):
+  def __init__(self, dataloader,
+               noise_size=100,
+               noise_generator=None,
+               generator=None,
+               optimizer=None
+              ):
     self.dataloader = dataloader
     data, _ = next(iter(dataloader))
     self.channel = data.size()[1]
     self.height = data.size()[2]
     self.width = data.size()[3]
-    self.in_size = 100
+
+    self.noise_size = noise_size
+    if noise_generator is None:
+      self.noise_generator = lambda n: torch.rand(n, self.noise_size).uniform_(-1, 1)
+    else:
+      self.noise_generator = noise_generator
+
     self.out_size = self.channel * self.height * self.width
-    self.f = Generator(self.in_size, self.out_size)
-    self.optimizer = optim.Adam(self.f.parameters())
+
+    if generator is None:
+      self.generator = Generator(self.noise_size, self.out_size)
+    else:
+      self.generator = generator
+
+    # Authors use SGD with momentum.
+    if optimizer is None:
+      self.optimizer = optim.Adam(self.generator.parameters())
+    else:
+      self.optimizer = optimizer
+
     self.losses = []
 
   def train(self, epoch):
-
-    # models
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    self.f = self.f.to(device)
+    self.generator = self.generator.to(device)
 
-    # optimizers
-    criterion = MMD([1, 2, 5, 10, 20, 50])
+    # The bandwidths are unclear.
+    criterion = MMDs([1, 2, 5, 10, 20, 50])
 
-    # training
     for i in range(epoch):
       running_loss = 0
+
       for _, (images, _) in enumerate(self.dataloader):
         n = images.size()[0]
+        images = images.view(n, -1).to(device)
 
         self.optimizer.zero_grad()
+        noise = self.noise_generator(n).to(device)
+        fake_images = self.generator(noise)
 
-        # generate data
-        fake_images = self.f(torch.rand(n, self.in_size, device=device).uniform_(-1, 1))
-
-        # backpropagation
-        loss = criterion(images.view((n, -1)).to(device), fake_images)
+        loss = criterion(images, fake_images)
         running_loss += loss.item()
         loss.backward()
         self.optimizer.step()
