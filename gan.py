@@ -52,9 +52,9 @@ class GAN:
     self.generator = Generator(noise_size, img_size).to(self.device)
     self.discriminator = Discriminator(img_size).to(self.device)
 
-    # SGD with momentum is used in the original paper.
-    self.g_optimizer = optim.Adam(self.generator.parameters())
-    self.d_optimizer = optim.Adam(self.discriminator.parameters())
+    # The learning rates and momentums are roughly chosen.
+    self.g_optimizer = optim.SGD(self.generator.parameters(), lr=0.01, momentum=0.9)
+    self.d_optimizer = optim.SGD(self.discriminator.parameters(), lr=0.01, momentum=0.9)
     self.g_losses = []
     self.d_losses = []
 
