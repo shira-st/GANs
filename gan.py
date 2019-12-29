@@ -68,16 +68,6 @@ class GAN:
       for _, (images, _) in enumerate(dataloader):
         n = images.size()[0]
 
-        ### train generator ###
-        self.g_optimizer.zero_grad()
-        fake_images = self.generator(torch.rand(n, self.noise_size, device=self.device))
-        fake_labels = torch.ones((n, ), device=self.device)
-
-        g_loss = criterion(self.discriminator(fake_images).view(-1), fake_labels)
-        g_running_loss += g_loss.item()
-        g_loss.backward()
-        self.g_optimizer.step()
-
         ### train discriminator ###
         self.d_optimizer.zero_grad()
         fake_images = self.generator(torch.rand(n, self.noise_size, device=self.device))
@@ -87,10 +77,20 @@ class GAN:
 
         d_fake_loss = criterion(self.discriminator(fake_images).view(-1), fake_labels)
         d_real_loss = criterion(self.discriminator(real_images).view(-1), real_labels)
-        d_loss = 0.5 * (d_fake_loss + d_real_loss)
+        d_loss = d_fake_loss + d_real_loss
         d_running_loss += d_loss.item()
         d_loss.backward()
         self.d_optimizer.step()
+
+        ### train generator ###
+        self.g_optimizer.zero_grad()
+        fake_images = self.generator(torch.rand(n, self.noise_size, device=self.device))
+        fake_labels = torch.ones((n, ), device=self.device)
+
+        g_loss = criterion(self.discriminator(fake_images).view(-1), fake_labels)
+        g_running_loss += g_loss.item()
+        g_loss.backward()
+        self.g_optimizer.step()
 
       g_running_loss /= len(dataloader)
       d_running_loss /= len(dataloader)
