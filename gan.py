@@ -44,6 +44,7 @@ class Discriminator(nn.Module):
 
 
 class GAN:
+  # The dimensionality of noise is roughly chosen.
   def __init__(self, img_size, noise_size=100):
     self.noise_size = noise_size
 
