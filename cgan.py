@@ -96,7 +96,7 @@ class CGAN:
   def train(self, data, condition):
     criterion = nn.BCELoss()
 
-    n = images.size()[0]
+    n = data.size()[0]
 
     ### train discriminator ###
     self.d_optimizer.zero_grad()
