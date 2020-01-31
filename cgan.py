@@ -122,7 +122,7 @@ class CGAN:
 
   def sample(self, n, condition):
     noise = self.noise_generator(n)
-    return torch.stack([self.generator(noise, c.repeat(n, 1)) for c in condition])
+    return self.generator(noise, condition)
 
   def set_state(self, state):
     self.generator.load_state_dict(state["generator_state_dict"])
