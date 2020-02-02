@@ -50,6 +50,8 @@ class GAN:
                discriminator=None,
                g_optimizer=None,
                d_optimizer=None,
+               g_scheduler=None,
+               d_scheduler=None,
                device=None):
     self.device = device
 
@@ -78,6 +80,9 @@ class GAN:
     else:
       self.d_optimizer = optim.SGD(self.discriminator.parameters(), lr=0.01, momentum=0.9)
 
+    self.g_scheduler = g_scheduler
+    self.d_scheduler = d_scheduler
+
   def train(self, data):
     criterion = nn.BCELoss()
 
@@ -105,6 +110,13 @@ class GAN:
     self.g_optimizer.step()
     return g_loss.item(), d_loss.item()
 
+  def scheduler_step(self):
+    if self.g_scheduler:
+      self.g_scheduler.step()
+    if self.d_scheduler:
+      self.d_scheduler.step()
+    return
+
   def sample(self, n):
     return self.generator(self.noise_generator(n))
 
@@ -113,6 +125,10 @@ class GAN:
     self.discriminator.load_state_dict(state["discriminator_state_dict"])
     self.g_optimizer.load_state_dict(state["g_optimizer_state_dict"])
     self.d_optimizer.load_state_dict(state["d_optimizer_state_dict"])
+    if self.g_scheduler:
+      self.g_scheduler.load_state_dict(state["g_scheduler_state_dict"])
+    if self.d_scheduler:
+      self.d_scheduler.load_state_dict(state["d_scheduler_state_dict"])
     return
 
   def get_state(self):
@@ -120,4 +136,8 @@ class GAN:
              "discriminator_state_dict": self.discriminator.state_dict(),
              "g_optimizer_state_dict": self.g_optimizer.state_dict(),
              "d_optimizer_state_dict": self.d_optimizer.state_dict()}
+    if self.g_scheduler:
+      state["g_scheduler_state_dict"] = self.g_scheduler.state_dict()
+    if self.d_scheduler:
+      state["d_scheduler_state_dict"] = self.d_scheduler.state_dict()
     return state
