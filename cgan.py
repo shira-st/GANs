@@ -67,6 +67,8 @@ class CGAN:
                discriminator=None,
                g_optimizer=None,
                d_optimizer=None,
+               g_scheduler=None,
+               d_scheduler=None,
                device=None):
     self.device = device
 
@@ -92,6 +94,17 @@ class CGAN:
       self.d_optimizer = d_optimizer
     else:
       self.d_optimizer = optim.SGD(self.discriminator.parameters(), lr=0.1, momentum=0.5)
+
+    # Momentum is increased from 0.5 up to 0.7 in the original paper.
+    lr_lambda = lambda epoch: max(0.99996 ** epoch, 0.00001)
+    if g_scheduler:
+      self.g_scheduler = g_scheduler
+    else:
+      self.g_scheduler = optim.lr_scheduler.LambdaLR(self.g_optimizer, lr_lambda)
+    if d_scheduler:
+      self.d_scheduler = d_scheduler
+    else:
+      self.d_scheduler = optim.lr_scheduler.LambdaLR(self.d_optimizer, lr_lambda)
 
   def train(self, data, condition):
     criterion = nn.BCELoss()
@@ -120,6 +133,13 @@ class CGAN:
     self.g_optimizer.step()
     return g_loss.item(), d_loss.item()
 
+  def scheduler_step(self):
+    if self.g_scheduler:
+      self.g_scheduler.step()
+    if self.d_scheduler:
+      self.d_scheduler.step()
+    return
+
   def sample(self, n, condition):
     noise = self.noise_generator(n)
     return self.generator(noise, condition)
@@ -129,6 +149,10 @@ class CGAN:
     self.discriminator.load_state_dict(state["discriminator_state_dict"])
     self.g_optimizer.load_state_dict(state["g_optimizer_state_dict"])
     self.d_optimizer.load_state_dict(state["d_optimizer_state_dict"])
+    if self.g_scheduler:
+      self.g_scheduler.load_state_dict(state["g_scheduler_state_dict"])
+    if self.d_scheduler:
+      self.d_scheduler.load_state_dict(state["d_scheduler_state_dict"])
     return
 
   def get_state(self):
@@ -136,4 +160,8 @@ class CGAN:
              "discriminator_state_dict": self.discriminator.state_dict(),
              "g_optimizer_state_dict": self.g_optimizer.state_dict(),
              "d_optimizer_state_dict": self.d_optimizer.state_dict()}
+    if self.g_scheduler:
+      state["g_scheduler_state_dict"] = self.g_scheduler.state_dict()
+    if self.d_scheduler:
+      state["d_scheduler_state_dict"] = self.d_scheduler.state_dict()
     return state
